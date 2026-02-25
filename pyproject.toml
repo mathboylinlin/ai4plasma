@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "AI4Plasma"
+version = "0.1.0"
+description = "An AI Library for Plasma Physics Simulation"
+readme = {file = "README.md", content-type = "text/markdown"}
+license-files = ["LICENSE"]
+authors = [
+    { name = "Linlin Zhong", email = "linlin@seu.edu.cn" },
+]
+requires-python = ">=3.10"
+keywords = [
+    "Deep learning",
+    "Operator learning",
+    "Physics-informed machine learning",
+    "AI for Plasma Science",
+    "AI for Science",
+    "Plasma simulation",
+    "Multiphysics simulation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy",
+    "pandas",
+    "torch",
+    "tensorboard",
+    "imageio",
+    "fipy",
+    "shapely",
+    "huggingface-hub",
+]
+
+[project.urls]
+Homepage = "https://github.com/mathboylinlin/ai4plasma"
+Documentation = "https://ai4plasma.readthedocs.io"
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["app*","docs*"]
