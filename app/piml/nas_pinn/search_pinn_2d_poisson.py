@@ -61,19 +61,19 @@ class Example2DNasPINN(PINN):
     ------------------
     **PDE (Poisson equation)**:
     
-      ∂²u/∂x² + ∂²u/∂y² = -8π²sin(2πx)sin(2πy)
+      ∂²u/∂x² + ∂²u/∂y² = -2π²cos(πx)cos(πy)
     
     **Domain**: Ω = [0, 1] × [0, 1] (unit square)
     
-    **Boundary Conditions**: Dirichlet BCs (u = 0 on all boundaries)
+    **Boundary Conditions**: Dirichlet BCs (u = cos(πx)cos(πy) on all boundaries)
     
-    **Analytical Solution**: u(x,y) = sin(2πx)sin(2πy)
+    **Analytical Solution**: u(x,y) = cos(πx)cos(πy)
     
     Loss Function Structure
     -----------------------
     **Standard Training Loss**:
     
-      L_total = Σ w_i * L_i where w_pde=1.0, w_bc=10.0
+      L_total = Σ w_i * L_i where w_pde=1.0, w_bc=1.0
     
     **Architecture Search Loss**:
     
@@ -128,10 +128,10 @@ class Example2DNasPINN(PINN):
         Compute the PDE residual for the Poisson equation.
         
         Computes ∇²u - f(x,y) using automatic differentiation through the network.
-        For the Poisson equation ∂²u/∂x² + ∂²u/∂y² = -8π²sin(2πx)sin(2πy),
+        For the Poisson equation ∂²u/∂x² + ∂²u/∂y² = -2π²cos(πx)cos(πy),
         the residual is:
         
-          R_pde = ∂²u/∂x² + ∂²u/∂y² + 8π²sin(2πx)sin(2πy)
+          R_pde = ∂²u/∂x² + ∂²u/∂y² + 2π²cos(πx)cos(πy)
         
         Parameters
         ----------
@@ -156,9 +156,9 @@ class Example2DNasPINN(PINN):
         u_xx = df_dX(u_x, xy)[:, 0:1]  # ∂²u/∂x²
         u_yy = df_dX(u_y, xy)[:, 1:2]  # ∂²u/∂y²
         
-        # Source term: f(x,y) = -8π²sin(2πx)sin(2πy)
+        # Source term: f(x,y) = -2π²cos(πx)cos(πy)
         x, y = xy[:, 0:1], xy[:, 1:2]
-        f = -8.0 * np.pi**2 * torch.sin(2*np.pi*x) * torch.sin(2*np.pi*y)
+        f = -2.0 * np.pi**2 * torch.cos(np.pi*x) * torch.cos(np.pi*y)
         
         # PDE residual
         residual = u_xx + u_yy - f
@@ -170,9 +170,9 @@ class Example2DNasPINN(PINN):
         """
         Compute the boundary condition residual.
         
-        For Dirichlet BC u = 0 on boundaries, the residual is:
+        For Dirichlet BC u = cos(πx)cos(πy) on boundaries, the residual is:
         
-          R_bc = u(x,y) - 0 = u(x,y)
+          R_bc = u(x,y) - cos(πx)cos(πy)
         
         Parameters
         ----------
@@ -187,7 +187,12 @@ class Example2DNasPINN(PINN):
             Boundary condition residual.
         """
         u = net(xy)
-        return u  # BC: u = 0 on boundaries
+
+        x = xy[:, 0]
+        y = xy[:, 1]
+        b = torch.cos(np.pi*x)*torch.cos(np.pi*y)
+
+        return u - b  # BC: u = cos(πx)cos(πy) on boundaries
     
     @staticmethod
     def _pde_residual_archi(net: nn.Module, xy: torch.Tensor) -> torch.Tensor:
@@ -196,10 +201,13 @@ class Example2DNasPINN(PINN):
         
         Uses a simplified residual formulation for efficient architecture updates:
         
-          R_archi = u(x,y) - sin(2πx)sin(2πy)
+          R_archi = u(x,y) - cos(πx)cos(πy)
         
         This variant encourages learning the analytical solution directly,
         providing a different optimization landscape for architecture search.
+
+        For more complex problems, this could be a weighted summation of the
+        PDE residual and a provided reference solution.
         
         Parameters
         ----------
@@ -219,7 +227,7 @@ class Example2DNasPINN(PINN):
         x = xy[:, 0]
         y = xy[:, 1]
 
-        f = torch.sin(2*pi*x)*torch.sin(2*pi*y)
+        f = torch.cos(pi*x)*torch.cos(pi*y)
 
         return u - f
     
@@ -233,7 +241,7 @@ class Example2DNasPINN(PINN):
         Loss Term Structure
         -------------------
         - **Domain**: Interior PDE residual at n_domain×n_domain points, weight=1.0
-        - **Boundary1-4**: BC residuals at each edge, weight=10.0 each
+        - **Boundary1-4**: BC residuals at each edge, weight=1.0 each
         
         Collocation Point Distribution
         --------------------------------
@@ -243,7 +251,7 @@ class Example2DNasPINN(PINN):
         Weight Justification
         --------------------
         - PDE weight (1.0): Baseline importance
-        - BC weight (10.0): Higher weight ensures accurate boundary satisfaction
+        - BC weight (1.0): Equal weight ensures balanced training of PDE and BC
         """
         
         xy_domain = self.geo.sample_domain(self.n_domain)
@@ -251,10 +259,10 @@ class Example2DNasPINN(PINN):
         
         # Add loss terms to PINN
         self.add_equation('Domain', self._pde_residual, weight=1.0, data=xy_domain)
-        self.add_equation('Boundary1', self._bc_residual, weight=10.0, data=xy_bc[0])
-        self.add_equation('Boundary2', self._bc_residual, weight=10.0, data=xy_bc[1])
-        self.add_equation('Boundary3', self._bc_residual, weight=10.0, data=xy_bc[2])
-        self.add_equation('Boundary4', self._bc_residual, weight=10.0, data=xy_bc[3])
+        self.add_equation('Boundary1', self._bc_residual, weight=1.0, data=xy_bc[0])
+        self.add_equation('Boundary2', self._bc_residual, weight=1.0, data=xy_bc[1])
+        self.add_equation('Boundary3', self._bc_residual, weight=1.0, data=xy_bc[2])
+        self.add_equation('Boundary4', self._bc_residual, weight=1.0, data=xy_bc[3])
 
     def _define_loss_terms_archi(self):
         """
@@ -267,7 +275,7 @@ class Example2DNasPINN(PINN):
         xy_bc = self.geo.sample_boundary(self.n_boundary_list_archi)
         
         # Add architecture search loss term
-        self.add_equation_archi('Domain_arcchi', self._pde_residual_archi, weight=1.0, data=xy_domain)
+        self.add_equation_archi('Domain_archi', self._pde_residual_archi, weight=1.0, data=xy_domain)
         self.add_equation_archi('Boundary1_archi', self._bc_residual, weight=1.0, data=xy_bc[0])
         self.add_equation_archi('Boundary2_archi', self._bc_residual, weight=1.0, data=xy_bc[1])
         self.add_equation_archi('Boundary3_archi', self._bc_residual, weight=1.0, data=xy_bc[2])
@@ -547,11 +555,11 @@ def analytical_solution(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     """
     Compute the analytical solution of the 2D Poisson equation.
     
-    Returns the exact solution u(x,y) = sin(2πx)sin(2πy) to:
+    Returns the exact solution u(x,y) = cos(πx)cos(πy) to:
     
-      ∂²u/∂x² + ∂²u/∂y² = -8π²sin(2πx)sin(2πy)
+      ∂²u/∂x² + ∂²u/∂y² = -2π²cos(πx)cos(πy)
     
-    with Dirichlet BC u = 0 on ∂Ω.
+    with Dirichlet BC u = cos(πx)cos(πy) on ∂Ω.
     
     Parameters
     ----------
@@ -565,7 +573,7 @@ def analytical_solution(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     u : np.ndarray, shape (Ny, Nx)
         Analytical solution field.
     """
-    return np.sin(2 * np.pi * X) * np.sin(2 * np.pi * Y)
+    return np.cos(np.pi * X) * np.cos(np.pi * Y)
 
 
 def plot_final_comparison(pinn: PINN, x_eval: np.ndarray, y_eval: np.ndarray,
@@ -777,7 +785,7 @@ if __name__ == '__main__':
     
     ## Step 1: Setup and Configuration ##
     # Fix random seed for reproducibility
-    set_seed(2026)
+    set_seed(2022)
 
     # Configure device (GPU if available, otherwise CPU)
     if check_gpu(print_required=True):
@@ -794,30 +802,30 @@ if __name__ == '__main__':
     print("2D NAS-PINN Example: Solving Poisson Equation ∇²u = f(x,y)")
     print("=" * 70)
     print(f"Device: {DEVICE()}")
-    print(f"PDE: ∂²u/∂x² + ∂²u/∂y² = -8π²sin(2πx)sin(2πy)")
+    print(f"PDE: ∂²u/∂x² + ∂²u/∂y² = -2π²cos(πx)cos(πy)")
     print(f"Domain: [0, 1] × [0, 1]")
-    print(f"BCs: u = 0 on all boundaries")
-    print(f"Analytical solution: u(x,y) = sin(2πx)sin(2πy)")
+    print(f"BCs: u = cos(πx)cos(πy) on all boundaries")
+    print(f"Analytical solution: u(x,y) = cos(πx)cos(πy)")
     print("=" * 70)
     
     # ========== Network Architecture ==========
-    network = RelaxFNN(layers=7,
-                          C_in_list=[2, 110, 110, 110, 110, 110, 110, 110],
-                          neuron_list=[0, 10, 30, 50, 70, 90, 110],
+    network = RelaxFNN(layers=5,
+                          C_in_list=[2, 70, 70, 70, 70, 70],
+                          neuron_list=[0, 30, 50, 70],
                           )
     
     # ========== NAS-PINN Initialization ==========
-    n_domain = 2500
-    n_boundary_list = [125, 125, 125, 125]
+    n_domain = 500
+    n_boundary_list = [25, 25, 25, 25]
     n_domain_archi = 1000
-    n_boundary_list_archi = [25, 25, 25, 25]
+    n_boundary_list_archi = [50, 50, 50, 50]
     
     pinn = Example2DNasPINN(network,
                              n_domain=n_domain,
                              n_boundary_list=n_boundary_list,
                              n_domain_archi=n_domain_archi,
                              n_boundary_list_archi=n_boundary_list_archi)
-    pinn.set_loss_func_archi(nn.MSELoss())
+    pinn.set_loss_func_archi(nn.functional.mse_loss)
     pinn.set_loss_func(nn.functional.smooth_l1_loss)
     
     # ========== Visualization Callback ==========

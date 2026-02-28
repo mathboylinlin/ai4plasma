@@ -18,9 +18,7 @@ NAS-PINN References
 
 import os
 from tqdm import tqdm
-from typing import Callable, Dict, List, Tuple, Optional, Union
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+from typing import Dict
 import torch
 from torch.utils.tensorboard import SummaryWriter
 

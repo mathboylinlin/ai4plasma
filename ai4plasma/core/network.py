@@ -821,12 +821,17 @@ class RelaxFNN(Network):
         for i in range(self.layers):
             self.network.append(RelaxLayer(self.C_in_list[i], self.neuron_list))
 
-    def searched_neuron(self):
+    def searched_neuron(self, threshold=1e-3):
         """Derive the discrete architecture from learned parameters.
         
         If the identity vs. nonlinear weights are close, retain a residual
         connection and append the selected neuron count. Otherwise, select the
         dominant option.
+
+        Parameters
+        ----------
+        threshold : float, optional
+            Threshold for determining if identity and nonlinear paths are close. Default is 1e-3.
         
         Returns
         -------
@@ -837,7 +842,7 @@ class RelaxFNN(Network):
         for i in range(self.layers):
             g = self.gs[i]
             ab = F.softmax(g[:2], dim=-1)
-            if abs(ab[0] - ab[1]) > 1e-2:
+            if abs(ab[0] - ab[1]) > threshold:
                 if torch.argmax(ab) == 0:
                     index = 0
                 else:
