@@ -263,6 +263,12 @@ DiffCS_Predict = mymodel.predict(
 DiffCS_Predict = DiffCS_Predict.cpu().detach().numpy()
 
 ## Calculate relative L2 error ##
+DiffCS_Predict = (DiffCS_Predict - 0.05) * (DiffCS_max - DiffCS_min) / 0.9 + DiffCS_min  # Inverse normalization
+DiffCS_Test = (DiffCS_Test - 0.05) * (DiffCS_max - DiffCS_min) / 0.9 + DiffCS_min  # Inverse normalization
+
+DiffCS_Predict = np.exp(DiffCS_Predict)  # Inverse log transform to original scale
+DiffCS_Test = np.exp(DiffCS_Test)          # Inverse log transform to original scale
+
 l2_err = calc_relative_l2_err(DiffCS_Test, DiffCS_Predict)
 
 print(f"\nTest Results:")
