@@ -1,11 +1,12 @@
-python=3.12
-numpy=2.1
-scipy=1.16
-matplotlib=3.10
-torch=2.8
-tensorboard=2.20
-imageio=2.37
-pandas=2.3
-fipy=4.0
-shapely=2.1
-huggingface-hub=1.4
+# python>=3.10
+torch>=2.0
+numpy
+scipy
+matplotlib
+torch
+tensorboard
+imageio
+pandas
+fipy
+shapely
+huggingface-hub
