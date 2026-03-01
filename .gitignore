@@ -3,6 +3,7 @@
 *results*
 dist*
 *.egg-info*
+ai4plasma/_version.py
 docs/build*
 app/piml/pinn/models*
 app/piml/pinn/runs*
