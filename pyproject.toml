@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "AI4Plasma"
-version = "0.1.0"
+dynamic = ["version"]
 description = "An AI Library for Plasma Physics Simulation"
 readme = {file = "README.md", content-type = "text/markdown"}
 license-files = ["LICENSE"]
@@ -49,3 +49,6 @@ Documentation = "https://ai4plasma.readthedocs.io"
 [tool.setuptools.packages.find]
 where = ["."]
 exclude = ["app*","docs*"]
+
+[tool.setuptools_scm]
+write_to = "ai4plasma/_version.py"
