@@ -2,7 +2,7 @@
 
 <p align="center">
     <picture>
-        <img src="./docs/images/AI4Plasma_Logo.svg">
+        <img src="https://raw.githubusercontent.com/mathboylinlin/ai4plasma/main/docs/images/AI4Plasma_Logo.svg">
     </picture>
 </p>
 
@@ -17,7 +17,7 @@ Although there are several excellent predecessors such as DeepXDE, AI4Plasma is 
 
 <p align="center">
     <picture>
-        <img src="./docs/images/AI4Plasma_Code.svg" width="800">
+        <img src="https://raw.githubusercontent.com/mathboylinlin/ai4plasma/main/docs/images/AI4Plasma_Code.svg" width="800">
     </picture>
 </p>
 
@@ -47,12 +47,12 @@ Although there are several excellent predecessors such as DeepXDE, AI4Plasma is 
 
 <p align="center">
     <picture>
-        <img src="./docs/images/CS-PINN-Sta-Arc.gif" width="800">
+        <img src="https://raw.githubusercontent.com/mathboylinlin/ai4plasma/main/docs/images/CS-PINN-Sta-Arc.gif" width="800">
     </picture>
 </p>
 <p align="center">
     <picture>
-        <img src="./docs/images/RK-PINN.gif" width="800">
+        <img src="https://raw.githubusercontent.com/mathboylinlin/ai4plasma/main/docs/images/RK-PINN.gif" width="800">
     </picture>
 </p>
 
